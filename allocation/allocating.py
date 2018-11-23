@@ -21,5 +21,26 @@ class WeightedMap:
         return self.wmap
 
 
+class Allocation(list):
+
+    def __getitem__(self, i):
+        return {a[1] for a in self if a[0] == i}
+
+    @classmethod
+    def start_allocation(cls, instances, needs):
+        first = [ (None, t) for t, k in needs.items() for i in range(k) ]
+        second = [ (s, None) for s, k in instances.items() for i in range(k) ]
+        return cls(first + second)
+
+
+
+class Needs(dict):
+    pass
+
+
+class Instances(dict):
+    pass
+
+
 class Allocator:
     pass
