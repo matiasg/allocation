@@ -1,45 +1,51 @@
-class WeightedMap:
+class WeightedMap(list):
+    pass
     
-    def __init__(self, source, target, wmap):
-        self.source = source
-        self.target = target
+
+class Source:
+
+    def __init__(self, wmap: WeightedMap, instances):
+        self.collection = {a['from'] for a in wmap}
         self.wmap = wmap
+        self.instances = instances
 
-    @classmethod
-    def from_list(cls, the_list):
-        source = {a['from'] for a in the_list}
-        target = {a['to'] for a in the_list}
-        return cls(source, target, the_list)
+    def __getitem__(self, s):
 
-    def get_source(self):
-        return self.source
+        if isinstance(s, str):
+            return self.instances[s]
 
-    def get_target(self):
-        return self.target
+        elif isinstance(s, tuple) and len(s) == 2:
+            records = [r for r in self.wmap if r['from'] == s[0] and r['to'] == s[1]]
+            if not records:
+                return None
+            # TODO: what if more than one record? Sanitize input
+            return records[0]['weight']
 
-    def get_map(self):
-        return self.wmap
+
+
+class Target:
+
+    def __init__(self, capacities):
+        self.collection = capacities.keys()
+        self.capacities = capacities
+
+    def __getitem__(self, t):
+        return self.capacities[t]
 
 
 class Allocation(list):
 
     def __getitem__(self, i):
-        return {a[1] for a in self if a[0] == i}
+        result = {a[1] for a in self if a[0] == i}
+        if not result:
+            raise KeyError(f'No {i} in source')
+        return result
 
     @classmethod
-    def start_allocation(cls, instances, needs):
-        first = [ (None, t) for t, k in needs.items() for i in range(k) ]
-        second = [ (s, None) for s, k in instances.items() for i in range(k) ]
+    def start_allocation(cls, source: Source, target: Target):
+        first = [ (s, None) for s, k in source.instances.items() for i in range(k) ]
+        second = [ (None, t) for t, k in target.capacities.items() for i in range(k) ]
         return cls(first + second)
-
-
-
-class Needs(dict):
-    pass
-
-
-class Instances(dict):
-    pass
 
 
 class Allocator:

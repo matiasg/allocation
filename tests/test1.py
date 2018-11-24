@@ -17,20 +17,13 @@ def small_allocation():
 
 
 @pytest.fixture
-def small_needs():
+def small_target():
     yield { 0: 3, 1: 1 }
 
 
 @pytest.fixture
 def small_instances():
     yield { 'a': 2, 'b': 1 }
-
-
-def test_wmap_instance_from_list(small_wmap):
-    wmap = allocating.WeightedMap.from_list(small_wmap)
-    assert len(wmap.get_source()) == 2
-    assert len(wmap.get_target()) == 2
-    assert len(wmap.get_map()) == 3
 
 
 def test_allocation(small_allocation):
@@ -40,20 +33,26 @@ def test_allocation(small_allocation):
     assert a['b'] == {0}
 
 
-def test_needs(small_needs):
-    n = allocating.Needs(small_needs)
+def test_target(small_target):
+    n = allocating.Target(small_target)
     assert n[0] == 3
     assert n[1] == 1
 
 
-def test_instances(small_instances):
-    i = allocating.Instances(small_instances)
+def test_source(small_wmap, small_instances):
+    i = allocating.Source(small_wmap, small_instances)
     assert i['a'] == 2
     assert i['b'] == 1
+    assert i[('a', 0)] == 1
+    assert i[('a', 2)] is None
 
 
-def test_start_allocation(small_instances, small_needs):
-    a = allocating.Allocation.start_allocation(small_instances, small_needs)
-    assert a['a'] == {None}
-    assert a['b'] == {None}
-    assert a[None] == {0, 1}
+def test_start_allocation(small_wmap, small_instances, small_target):
+    source = allocating.Source(small_wmap, small_instances)
+    target = allocating.Target(small_target)
+    allocation = allocating.Allocation.start_allocation(source, target)
+    assert allocation['a'] == {None}
+    assert allocation['b'] == {None}
+    assert allocation[None] == {0, 1}
+    with pytest.raises(KeyError):
+        allocation['c']
