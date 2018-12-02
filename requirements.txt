@@ -1,1 +1,2 @@
 mypy_extensions
+pytest-coverage
