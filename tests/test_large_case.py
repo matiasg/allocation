@@ -18,6 +18,7 @@ WeightedMap: n --> n   (weight 1)
              n --> n-1 (weight 2)
 '''
 
+
 @pytest.fixture
 def large_one_to_one():
     elements = range(20)
@@ -53,6 +54,7 @@ def test_finishes(large_one_to_one):
     for e in large_one_to_one.sources.collection:
         if e is not None:
             assert allocation[e] == {str(e)}
+
 
 def test_finishes_alternate(large_one_to_one_alternate):
     allocation = large_one_to_one_alternate.get_best()
