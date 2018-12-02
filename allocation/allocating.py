@@ -9,13 +9,20 @@ Path = List[Switch]
 DiffPath = TypedDict('DiffPath', {'diff': float, 'path': Path})
 Differences = Dict[Tuple[Optional[TargetObject], Optional[TargetObject]], DiffPath]
 
+WeightedNode = TypedDict('WeightedNode', {'from': Optional[SourceObject],
+                                          'to': Optional[TargetObject],
+                                          'weight': float})
+
 
 class WeightedMap(list):
+
+    def __init__(self, nodes: Sequence[WeightedNode]):
+        super().__init__(nodes)
 
     def __getitem__(self, key):
 
         if isinstance(key, str) or key is None:
-            return [ stw for stw in self if stw['from'] == key ]
+            return [stw for stw in self if stw['from'] == key]
 
         elif isinstance(key, tuple):
             source, target = key
@@ -24,8 +31,8 @@ class WeightedMap(list):
                     return stw['weight']
             return None
 
-        raise ValueError(f"Can't get item, argument must be str, None or tuple, got {key}")
-    
+        raise ValueError(f"Can't get item, argument must be str, None or tuple. Got {key}")
+
 
 class Source:
 
@@ -46,7 +53,7 @@ class Source:
             # TODO: what if more than one record? Sanitize input
             return records[0]['weight']
 
-    def get_weight(self, allocation):
+    def get_weight(self, allocation) -> float:
         return sum(self[s, t] for s, t in allocation)
 
 
@@ -67,11 +74,6 @@ class Allocation(list):
         if not result:
             raise KeyError(f'No {i} in source')
         return result
-
-
-class Distances(dict):
-    pass
-
 
 
 class Allocator:
@@ -100,8 +102,8 @@ class Allocator:
     def init_allocation(self) -> Allocation:
         first: List[Tuple[Optional[SourceObject], Optional[TargetObject]]]
         second: List[Tuple[Optional[SourceObject], Optional[TargetObject]]]
-        first = [ (s, None) for s, k in self.sources.instances.items() for i in range(k) if s is not None ]
-        second = [ (None, t) for t, k in self.targets.capacities.items() for i in range(k) if t is not None ]
+        first = [(s, None) for s, k in self.sources.instances.items() for i in range(k) if s is not None]
+        second = [(None, t) for t, k in self.targets.capacities.items() for i in range(k) if t is not None]
         return Allocation(first + second)
 
     def get_differences(self, allocation: Allocation) -> Differences:
@@ -135,7 +137,7 @@ class Allocator:
                         differences[(first, last)] = {'path': first_path + last_path, 'diff': diff_through}
         return differences
 
-    def has_cycle(self, differences):
+    def has_cycle(self, differences: Differences) -> bool:
         return self.get_cycle(differences) is not None
 
     def get_cycle(self, differences: Differences) -> Optional[DiffPath]:
@@ -145,7 +147,7 @@ class Allocator:
                 return pd
         return None
 
-    def rotate(self, allocation: Allocation, path: Path):
+    def rotate(self, allocation: Allocation, path: Path) -> None:
         s = path[-1]['to']
         for ot in path:
             t = ot['to']
@@ -156,7 +158,7 @@ class Allocator:
             allocation.append((o, t))
             s = t
 
-    def get_best(self):
+    def get_best(self) -> Allocation:
         allocation = self.init_allocation()
         differences = self.get_differences(allocation)
         cycle = self.get_cycle(differences)

@@ -16,6 +16,7 @@ The best allocation is:
             1: {a}
 '''
 
+
 @pytest.fixture
 def small_wmap():
     the_list = [
@@ -25,23 +26,26 @@ def small_wmap():
             ]
     yield allocating.WeightedMap(the_list)
 
+
 @pytest.fixture
 def small_allocation():
-    yield [ ('a', 0), ('a', 1), ('b', 0) ]
+    yield [('a', 0), ('a', 1), ('b', 0)]
 
 
 @pytest.fixture
 def small_target():
-    yield { 0: 3, 1: 1 }
+    yield {0: 3, 1: 1}
 
 
 @pytest.fixture
 def small_instances():
-    yield { 'a': 2, 'b': 1 }
+    yield {'a': 2, 'b': 1}
+
 
 @pytest.fixture
 def small_source(small_wmap, small_instances):
     yield allocating.Source(small_wmap, small_instances)
+
 
 @pytest.fixture
 def small_allocator(small_instances, small_wmap, small_target):
@@ -82,9 +86,9 @@ def test_wmap(small_allocator):
     wmap = small_allocator.sources.wmap
     assert any(ftw['from'] == 'a' and ftw['to'] == 0 for ftw in wmap)
     assert any(ftw['from'] == 'a' and ftw['to'] == 1 for ftw in wmap)
-    assert any(ftw['from'] == 'a' and ftw['to'] == None for ftw in wmap)
-    assert any(ftw['from'] == None and ftw['to'] == 0 for ftw in wmap)
-    assert any(ftw['from'] == None and ftw['to'] == None for ftw in wmap)
+    assert any(ftw['from'] == 'a' and ftw['to'] is None for ftw in wmap)
+    assert any(ftw['from'] is None and ftw['to'] == 0 for ftw in wmap)
+    assert any(ftw['from'] is None and ftw['to'] is None for ftw in wmap)
 
 
 def test_init_allocation_weight(small_allocator):
