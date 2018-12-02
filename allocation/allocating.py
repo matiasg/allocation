@@ -1,5 +1,6 @@
 from typing import NewType, Sequence, Mapping, Optional, Dict, List, Tuple
 from mypy_extensions import TypedDict
+import logging
 
 SourceObject = NewType('SourceObject', str)
 TargetObject = NewType('TargetObject', str)
@@ -12,6 +13,10 @@ Differences = Dict[Tuple[Optional[TargetObject], Optional[TargetObject]], DiffPa
 WeightedNode = TypedDict('WeightedNode', {'from': Optional[SourceObject],
                                           'to': Optional[TargetObject],
                                           'weight': float})
+
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger()
 
 
 class WeightedMap(list):
@@ -106,7 +111,7 @@ class Allocator:
         second = [(None, t) for t, k in self.targets.capacities.items() for i in range(k) if t is not None]
         return Allocation(first + second)
 
-    def get_differences(self, allocation: Allocation) -> Differences:
+    def get_first_cycle(self, allocation: Allocation) -> Differences:
         inf = float('inf')
 
         differences: Differences = dict()
@@ -128,13 +133,23 @@ class Allocator:
 
         # now, do Floyd - Warshall
         for middle in targets_coll:
+            logger.debug('middle: %s', middle)
+
             for first in targets_coll:
                 for last in targets_coll:
+
                     diff_through = differences[(first, middle)]['diff'] + differences[(middle, last)]['diff']
+
                     if diff_through < differences[(first, last)]['diff']:
                         first_path = differences[(first, middle)]['path']
                         last_path = differences[(middle, last)]['path']
                         differences[(first, last)] = {'path': first_path + last_path, 'diff': diff_through}
+                        logger.debug('  found better path from %s to %s: %s', first, last, differences[(first, last)])
+
+                    if last == first and differences[(first, last)]['diff'] < 0:
+                        return differences[(first, last)]
+
+        return None
         return differences
 
     def has_cycle(self, differences: Differences) -> bool:
@@ -160,12 +175,11 @@ class Allocator:
 
     def get_best(self) -> Allocation:
         allocation = self.init_allocation()
-        differences = self.get_differences(allocation)
-        cycle = self.get_cycle(differences)
+        cycle = self.get_first_cycle(allocation)
 
         while cycle is not None:
+            logger.info('perform rotation. Difference: %s, path: %s', cycle['diff'], cycle['path'])
             self.rotate(allocation, cycle['path'])
-            differences = self.get_differences(allocation)
-            cycle = self.get_cycle(differences)
+            cycle = self.get_first_cycle(allocation)
 
         return allocation

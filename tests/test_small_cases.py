@@ -97,13 +97,6 @@ def test_init_allocation_weight(small_allocator):
     assert sources.get_weight(allocation) > 1
 
 
-def test_get_differences(small_allocator):
-    allocation = small_allocator.init_allocation()
-    differences = small_allocator.get_differences(allocation)
-    assert len(differences) == len(small_allocator.targets.collection) ** 2
-    assert small_allocator.has_cycle(differences)
-
-
 def test_allocator_rotate(small_allocator):
     allocation = small_allocator.init_allocation()
     path = [{'object': None, 'to': None}, {'object': 'a', 'to': 1}, {'object': None, 'to': 0}]
