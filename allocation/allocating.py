@@ -80,6 +80,9 @@ class Allocation(list):
             raise KeyError(f'No {i} in source')
         return result
 
+    def __str__(self):
+        return ', '.join([f'{f} -> {t}' for f, t in self if f is not None and t is not None])
+
 
 class Allocator:
 
@@ -180,6 +183,7 @@ class Allocator:
         while cycle is not None:
             logger.info('perform rotation. Difference: %s, path: %s', cycle['diff'], cycle['path'])
             self.rotate(allocation, cycle['path'])
+            logger.debug('current: %s', allocation)
             cycle = self.get_first_cycle(allocation)
 
         return allocation
