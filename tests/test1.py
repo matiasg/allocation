@@ -100,8 +100,16 @@ def test_get_differences(small_allocator):
     assert small_allocator.has_cycle(differences)
 
 
-@pytest.mark.skip
-def test_allocator_1(small_allocator):
+def test_allocator_rotate(small_allocator):
+    allocation = small_allocator.init_allocation()
+    path = [{'object': None, 'to': None}, {'object': 'a', 'to': 1}, {'object': None, 'to': 0}]
+    small_allocator.rotate(allocation, path)
+    assert allocation[None] == {0, None}
+    assert allocation['a'] == {1, None}
+    assert allocation['b'] == {None}
+
+
+def test_allocator(small_allocator):
     allocation = small_allocator.get_best()
     assert allocation['a'] == {0, 1}
     assert allocation['b'] == {0}

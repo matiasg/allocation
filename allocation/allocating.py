@@ -1,7 +1,13 @@
-from typing import NewType, Sequence, Mapping
+from typing import NewType, Sequence, Mapping, Optional, Dict, List, Tuple
+from mypy_extensions import TypedDict
 
 SourceObject = NewType('SourceObject', str)
 TargetObject = NewType('TargetObject', str)
+
+Switch = TypedDict('Switch', {'object': Optional[SourceObject], 'to': Optional[TargetObject]})
+Path = List[Switch]
+DiffPath = TypedDict('DiffPath', {'diff': float, 'path': Path})
+Differences = Dict[Tuple[Optional[TargetObject], Optional[TargetObject]], DiffPath]
 
 
 class WeightedMap(list):
@@ -23,7 +29,7 @@ class WeightedMap(list):
 
 class Source:
 
-    def __init__(self, wmap: WeightedMap, instances: Mapping[SourceObject, int]):
+    def __init__(self, wmap: WeightedMap, instances: Mapping[Optional[SourceObject], int]):
         self.collection = {a['from'] for a in wmap}
         self.wmap = wmap
         self.instances = instances
@@ -46,7 +52,7 @@ class Source:
 
 class Target:
 
-    def __init__(self, capacities: Mapping[TargetObject, int]):
+    def __init__(self, capacities: Mapping[Optional[TargetObject], int]):
         self.collection = capacities.keys()
         self.capacities = capacities
 
@@ -67,12 +73,13 @@ class Distances(dict):
     pass
 
 
+
 class Allocator:
 
     def __init__(self,
-                 sources: Mapping[SourceObject, int],
+                 sources: Dict[Optional[SourceObject], int],
                  wmap: WeightedMap,
-                 targets: Mapping[TargetObject, int]):
+                 targets: Dict[Optional[TargetObject], int]):
 
         sources_total_qty = sum(sources.values())
         targets_total_qty = sum(targets.values())
@@ -84,21 +91,23 @@ class Allocator:
             wmap.append({'from': s, 'to': None, 'weight': max_val + 1})
         wmap.append({'from': None, 'to': None, 'weight': -1})
 
-        targets[None] = sources_total_qty
         sources[None] = targets_total_qty
+        targets[None] = sources_total_qty
 
         self.sources = Source(wmap, sources)
         self.targets = Target(targets)
 
     def init_allocation(self) -> Allocation:
+        first: List[Tuple[Optional[SourceObject], Optional[TargetObject]]]
+        second: List[Tuple[Optional[SourceObject], Optional[TargetObject]]]
         first = [ (s, None) for s, k in self.sources.instances.items() for i in range(k) if s is not None ]
         second = [ (None, t) for t, k in self.targets.capacities.items() for i in range(k) if t is not None ]
         return Allocation(first + second)
 
-    def get_differences(self, allocation: Allocation):
+    def get_differences(self, allocation: Allocation) -> Differences:
         inf = float('inf')
 
-        differences = dict()
+        differences: Differences = dict()
         targets_coll = self.targets.collection
         for t1 in targets_coll:
             for t2 in targets_coll:
@@ -127,7 +136,34 @@ class Allocator:
         return differences
 
     def has_cycle(self, differences):
-        return any(differences[s, s]['diff'] < 0 for s in self.targets.collection)
+        return self.get_cycle(differences) is not None
 
+    def get_cycle(self, differences: Differences) -> Optional[DiffPath]:
+        for t in self.targets.collection:
+            pd = differences[(t, t)]
+            if pd['diff'] < 0:
+                return pd
+        return None
 
+    def rotate(self, allocation: Allocation, path: Path):
+        s = path[-1]['to']
+        for ot in path:
+            t = ot['to']
+            o = ot['object']
+            # must move o from s to t
+            idx = allocation.index((o, s))
+            allocation.pop(idx)
+            allocation.append((o, t))
+            s = t
 
+    def get_best(self):
+        allocation = self.init_allocation()
+        differences = self.get_differences(allocation)
+        cycle = self.get_cycle(differences)
+
+        while cycle is not None:
+            self.rotate(allocation, cycle['path'])
+            differences = self.get_differences(allocation)
+            cycle = self.get_cycle(differences)
+
+        return allocation
