@@ -31,7 +31,6 @@ def load_yaml(infile) -> Allocator:
     return Allocator(y['sources'], wmap, y['targets'])
 
 
-
 def main(args) -> Allocation:
     allocator = load_yaml(args.allocate)
     allocation = allocator.get_best()
