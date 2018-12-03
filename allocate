@@ -1,0 +1,15 @@
+#!/usr/bin/env python3
+
+import logging
+logger = logging.getLogger()
+
+from allocation import main
+args = main.parse()
+
+logging.basicConfig()
+loglevel = {0: logging.WARN, 1: logging.INFO, 2: logging.DEBUG}[args.verbose]
+logger.setLevel(loglevel)
+for handler in logger.handlers:
+    handler.setLevel(loglevel)
+
+main.main(args)
