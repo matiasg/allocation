@@ -15,8 +15,7 @@ WeightedNode = TypedDict('WeightedNode', {'from': Optional[SourceObject],
                                           'weight': float})
 
 
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 
 class WeightedMap(list):
