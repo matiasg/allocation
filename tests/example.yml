@@ -1,0 +1,12 @@
+sources:
+    a: 2
+    b: 1
+
+targets:
+    0: 3
+    1: 1
+
+weights:
+    - [a, 0, 2]
+    - [a, 1, 1]
+    - [b, 0, 1]
