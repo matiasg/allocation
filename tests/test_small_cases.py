@@ -14,6 +14,19 @@ WeightedMap: a --> 0 (weight 1)
 The best allocation is:
             0: {a, b}
             1: {a}
+
+small case 2:
+    Source: a, a, b
+    Target: 0, 0, 1
+    WeightedMap: a --> 0 (weight 0)
+                 a --> 1 (weight 1)
+                 b --> 0 (weight 1)
+                 b --> 1 (weight 0)
+    Best allocation:
+                0: {a, b}
+                1: {a}
+    This is because we do not allow 0: {a, a}
+    (which would clearly be the same as 0: {a} )
 '''
 
 
@@ -40,6 +53,17 @@ def small_target():
 @pytest.fixture
 def small_instances():
     yield {'a': 2, 'b': 1}
+
+
+@pytest.fixture
+def small_source(small_wmap, small_instances):
+    yield allocating.Source(small_wmap, small_instances)
+
+
+@pytest.fixture
+def small_allocator(small_instances, small_wmap, small_target):
+    allocator = allocating.Allocator(small_instances, small_wmap, small_target)
+    yield allocator
 
 
 @pytest.fixture
@@ -108,5 +132,25 @@ def test_allocator_rotate(small_allocator):
 
 def test_allocator(small_allocator):
     allocation = small_allocator.get_best()
+    assert allocation['a'] == {0, 1}
+    assert allocation['b'] == {0}
+
+
+@pytest.fixture
+def small_allocator_2():
+    the_list = [
+            {'from': 'a', 'to': 0, 'weight': 0},
+            {'from': 'a', 'to': 1, 'weight': 1},
+            {'from': 'b', 'to': 0, 'weight': 1},
+            {'from': 'b', 'to': 1, 'weight': 0}
+            ]
+    wmap = allocating.WeightedMap(the_list)
+    instances = {'a': 2, 'b': 1}
+    capacities = {0: 2, 1: 1}
+    yield allocating.Allocator(instances, wmap, capacities)
+
+
+def test_allocator_2(small_allocator_2):
+    allocation = small_allocator_2.get_best()
     assert allocation['a'] == {0, 1}
     assert allocation['b'] == {0}
