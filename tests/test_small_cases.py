@@ -150,7 +150,7 @@ def small_allocator_2():
     yield allocating.Allocator(instances, wmap, capacities)
 
 
-def test_allocator_2(small_allocator_2):
+def test_same_source_is_not_allocated_twice_to_same_target(small_allocator_2):
     allocation = small_allocator_2.get_best()
     assert allocation['a'] == {0, 1}
     assert allocation['b'] == {0}
