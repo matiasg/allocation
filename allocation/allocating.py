@@ -123,17 +123,25 @@ class Allocator:
                 differences[(t1, t2)] = {'path': [], 'diff': inf}
 
         # first differences
+        NoneSet = {None}
         for source, target_0 in allocation:
             sweights = self.sources.wmap[source]
             current_weight = [sw['weight'] for sw in sweights if sw['to'] == target_0][0]  # TODO: make this prettier
 
+            this_source_allocations = allocation[source] - NoneSet
+
             for stw in sweights:
+
                 target, weight = stw['to'], stw['weight']
+                # ir source already allocated to target, don't consider moving it there again.
+                if target in this_source_allocations:
+                    continue
+
                 diff = weight - current_weight
                 if diff < differences[(target_0, target)]['diff']:
                     differences[(target_0, target)] = {'path': [{'object': stw['from'], 'to': target}], 'diff': diff}
 
-        # now, do Floyd - Warshall
+        # now, do Floyd - Warshall. Stop as soon as a cycle has difference < 0.
         for middle in targets_coll:
             logger.debug('middle: %s', middle)
 
@@ -152,7 +160,6 @@ class Allocator:
                         return differences[(first, last)]
 
         return None
-        return differences
 
     def has_cycle(self, differences: Differences) -> bool:
         return self.get_cycle(differences) is not None
