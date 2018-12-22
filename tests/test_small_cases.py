@@ -106,13 +106,29 @@ def test_start_allocation(small_allocator):
         allocation['c']
 
 
-def test_wmap(small_allocator):
+def test_wmap_iterator(small_allocator):
     wmap = small_allocator.sources.wmap
     assert any(ftw['from'] == 'a' and ftw['to'] == 0 for ftw in wmap)
     assert any(ftw['from'] == 'a' and ftw['to'] == 1 for ftw in wmap)
     assert any(ftw['from'] == 'a' and ftw['to'] is None for ftw in wmap)
     assert any(ftw['from'] is None and ftw['to'] == 0 for ftw in wmap)
     assert any(ftw['from'] is None and ftw['to'] is None for ftw in wmap)
+
+def test_wmap_getitem(small_wmap):
+    assert {'from': 'a', 'to': 0, 'weight': 1} in small_wmap['a']
+    assert len(small_wmap['a']) == 2
+    assert {'from': 'b', 'to': 0, 'weight': 2} in small_wmap['b']
+    assert len(small_wmap['b']) == 1
+    assert small_wmap[('a', 0)] == 1
+    assert small_wmap[('a', 1)] == 0
+    assert small_wmap[('b', 0)] == 2
+    # missing keys
+    assert small_wmap['c'] == []
+    assert small_wmap[('a', 2)] is None
+    # key error
+    with pytest.raises(KeyError):
+        small_wmap[0]
+
 
 
 def test_init_allocation_weight(small_allocator):
