@@ -125,9 +125,9 @@ class Allocator:
         # first differences
         NoneSet = {None}
         for source, target_0 in allocation:
-            sweights = self.sources.wmap[source]
-            current_weight = [sw['weight'] for sw in sweights if sw['to'] == target_0][0]  # TODO: make this prettier
 
+            current_weight = self.sources.wmap[(source, target_0)]
+            sweights = self.sources.wmap[source]
             this_source_allocations = allocation[source] - NoneSet
 
             for stw in sweights:
