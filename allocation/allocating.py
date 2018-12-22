@@ -35,7 +35,7 @@ class WeightedMap(list):
                     return stw['weight']
             return None
 
-        raise ValueError(f"Can't get item, argument must be str, None or tuple. Got {key}")
+        raise KeyError(f"Can't get item, argument must be str, None or tuple. Got {key}")
 
 
 class Source:
