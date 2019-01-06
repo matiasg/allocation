@@ -66,17 +66,6 @@ def small_allocator(small_instances, small_wmap, small_target):
     yield allocator
 
 
-@pytest.fixture
-def small_source(small_wmap, small_instances):
-    yield allocating.Source(small_wmap, small_instances)
-
-
-@pytest.fixture
-def small_allocator(small_instances, small_wmap, small_target):
-    allocator = allocating.Allocator(small_instances, small_wmap, small_target)
-    yield allocator
-
-
 def test_allocation(small_allocation):
     a = allocating.Allocation(small_allocation)
     assert len(a) == 3
