@@ -13,6 +13,7 @@ install:
 # command to run tests
 script:
   - python -m pytest --cov=allocation --cov=tests tests
+  - tools/run_mypy.sh
 
 after_script:
     - tools/run_pycodestyle.sh
