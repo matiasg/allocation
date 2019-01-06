@@ -103,6 +103,7 @@ def test_wmap_iterator(small_allocator):
     assert any(ftw['from'] is None and ftw['to'] == 0 for ftw in wmap)
     assert any(ftw['from'] is None and ftw['to'] is None for ftw in wmap)
 
+
 def test_wmap_getitem(small_wmap):
     assert {'from': 'a', 'to': 0, 'weight': 1} in small_wmap['a']
     assert len(small_wmap['a']) == 2
@@ -117,7 +118,6 @@ def test_wmap_getitem(small_wmap):
     # key error
     with pytest.raises(KeyError):
         small_wmap[0]
-
 
 
 def test_init_allocation_weight(small_allocator):
