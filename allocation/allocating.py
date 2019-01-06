@@ -113,7 +113,7 @@ class Allocator:
         second = [(None, t) for t, k in self.targets.capacities.items() for i in range(k) if t is not None]
         return Allocation(first + second)
 
-    def get_first_cycle(self, allocation: Allocation) -> Differences:
+    def get_first_cycle(self, allocation: Allocation) -> Optional[DiffPath]:
         inf = float('inf')
 
         differences: Differences = dict()
