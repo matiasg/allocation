@@ -27,6 +27,14 @@ small case 2:
                 1: {a}
     This is because we do not allow 0: {a, a}
     (which would clearly be the same as 0: {a} )
+
+small case 3:
+    Source: a
+    Target: 0, 1
+    WeightedMap: a --> 0 (weight 0)
+    Best allocation:
+                0: {a}
+                1: {}
 '''
 
 
@@ -159,3 +167,21 @@ def test_same_source_is_not_allocated_twice_to_same_target(small_allocator_2):
     allocation = small_allocator_2.get_best()
     assert allocation['a'] == {0, 1}
     assert allocation['b'] == {0}
+
+
+@pytest.fixture
+def small_allocator_3():
+    the_list = [
+            {'from': 'a', 'to': 0, 'weight': 0},
+            ]
+    wmap = allocating.WeightedMap(the_list)
+    instances = {'a': 1}
+    capacities = {0: 1, 1: 1}
+    yield allocating.Allocator(instances, wmap, capacities)
+
+
+def test_one_target_empty(small_allocator_3):
+    allocation = small_allocator_3.get_best()
+    assert allocation['a'] == {0}
+
+
