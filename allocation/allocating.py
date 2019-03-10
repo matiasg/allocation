@@ -80,7 +80,15 @@ class Allocation(list):
         return result
 
     def __str__(self):
-        return ', '.join([f'{f} -> {t}' for f, t in self if f is not None and t is not None])
+        return ', '.join([f'{f} -> {t}' for f, t in self._really_allocated()])
+
+    def _really_allocated(self):
+        return [a for a in self if a[0] is not None and a[1] is not None]
+
+    def __len__(self):
+        '''Returns the number of "real" allocations.'''
+
+        return len(self._really_allocated())
 
 
 class Allocator:
