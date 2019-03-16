@@ -183,5 +183,3 @@ def small_allocator_3():
 def test_one_target_empty(small_allocator_3):
     allocation = small_allocator_3.get_best()
     assert allocation['a'] == {0}
-
-

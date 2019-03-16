@@ -3,6 +3,7 @@ from multiprocessing import Process, Queue
 
 from allocation.allocating import WeightedMap, Allocator
 
+
 def test_real_case_with_five_objects():
     weights = WeightedMap([
         {'from': '6', 'to': '5', 'weight': 2.0},
