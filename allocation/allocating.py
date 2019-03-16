@@ -1,6 +1,7 @@
 from typing import NewType, Sequence, Mapping, Optional, Dict, List, Tuple
 from mypy_extensions import TypedDict
 import logging
+from fractions import Fraction
 
 SourceObject = NewType('SourceObject', str)
 TargetObject = NewType('TargetObject', str)
@@ -96,8 +97,15 @@ class Allocator:
     def __init__(self,
                  sources: Dict[Optional[SourceObject], int],
                  wmap: WeightedMap,
-                 targets: Dict[Optional[TargetObject], int]):
+                 targets: Dict[Optional[TargetObject], int],
+                 limit_denominator=None):
+        '''If limit_denominator is a positive number, weights are converted
+        to fractions with denominator <= limit_denominator.
+        '''
 
+        if limit_denominator:
+            for weight in wmap:
+                weight['weight'] = Fraction(weight['weight']).limit_denominator(limit_denominator)
         sources_total_qty = sum(sources.values())
         targets_total_qty = sum(targets.values())
 
