@@ -1,4 +1,5 @@
 import pytest
+from multiprocessing import Process, Queue
 
 from allocation.allocating import WeightedMap, Allocator
 
@@ -42,3 +43,46 @@ def test_real_case_with_five_objects():
     allocator = Allocator(sources, weights, targets)
     allocation = allocator.get_best()
     assert len(allocation) == 4
+
+
+def get_allocation(queue, allocator):
+    allocation = allocator.get_best()
+    queue.put(allocation)
+
+
+def test_real_case_floating_point():
+    # In this test, if limit_denominator is not set, the method
+    # allocator.get_best does not finish. This is because of the following
+    # nasty floating point rounding problem:
+
+    # In [51]: a, b, c = 0.5, 2/7, 1/14
+    # In [52]: (a - c) + (c - b) + (b - a) > 0
+    # Out[52]: True
+
+    weights = WeightedMap([
+        {'from': 'a', 'to': '1', 'weight': 1/14},
+        {'from': 'a', 'to': '2', 'weight': 2/7},
+        {'from': 'a', 'to': '3', 'weight': 0.5},
+        {'from': 'b', 'to': '1', 'weight': 1/14},
+        {'from': 'b', 'to': '2', 'weight': 2/7},
+        {'from': 'b', 'to': '3', 'weight': 0.5},
+        {'from': 'c', 'to': '1', 'weight': 1/14},
+        {'from': 'c', 'to': '2', 'weight': 2/7},
+        {'from': 'c', 'to': '3', 'weight': 0.5},
+    ])
+
+    sources = {w['from']: 1 for w in weights}
+    targets = {w['to']: 1 for w in weights}
+
+    allocator = Allocator(sources, weights, targets, limit_denominator=1000)
+
+    queue = Queue()
+    process = Process(target=get_allocation, args=(queue, allocator))
+    process.start()
+    process.join(3)
+    if process.is_alive():
+        process.terminate()
+        raise AssertionError('computation did not finish in time')
+
+    allocation = queue.get()
+    assert len(allocation) == 3
