@@ -72,12 +72,11 @@ def large_random(sources_number, targets_number, choices, limit_denominator):
     targets = {str(t): 1 for t in range(targets_number)}
 
     wmap_list = []
-    rnd_weight = lambda: random.uniform(0, 1)
     for source in sources:
         stargets = set(random.choices(list(targets), k=choices))
         for t in stargets:
             wmap_list.append({'from': source, 'to': t,
-                              'weight': rnd_weight()})
+                              'weight': random.uniform(0, 1)})
     wmap = allocating.WeightedMap(wmap_list)
 
     return allocating.Allocator(sources, wmap, targets, limit_denominator)
