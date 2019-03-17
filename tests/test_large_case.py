@@ -33,7 +33,7 @@ def large_one_to_one():
         wmap_list.append({'from': str(e), 'to': str(e), 'weight': 0})
         wmap_list.append({'from': str(e), 'to': str((e + 1) % len(elements)), 'weight': 1})
         wmap_list.append({'from': str(e), 'to': str((e - 1) % len(elements)), 'weight': 1})
-    wmap = allocating.WeightedMap(wmap_list)
+    wmap = allocating.ListWeightedMap(wmap_list)
 
     yield allocating.Allocator(sources, wmap, targets)
 
@@ -48,7 +48,7 @@ def large_one_to_one_alternate():
         wmap_list.append({'from': str(e), 'to': str(e), 'weight': 1})
         wmap_list.append({'from': str(e), 'to': str((e + 1) % len(elements)), 'weight': 3 * (e % 2)})
         wmap_list.append({'from': str(e), 'to': str((e - 1) % len(elements)), 'weight': 2.5})
-    wmap = allocating.WeightedMap(wmap_list)
+    wmap = allocating.ListWeightedMap(wmap_list)
 
     yield allocating.Allocator(sources, wmap, targets)
 
@@ -77,7 +77,7 @@ def large_random(sources_number, targets_number, choices, limit_denominator):
         for t in stargets:
             wmap_list.append({'from': source, 'to': t,
                               'weight': random.uniform(0, 1)})
-    wmap = allocating.WeightedMap(wmap_list)
+    wmap = allocating.DictWeightedMap(wmap_list)
 
     return allocating.Allocator(sources, wmap, targets, limit_denominator)
 

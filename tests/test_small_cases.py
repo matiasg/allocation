@@ -45,7 +45,7 @@ def small_wmap():
             {'from': 'a', 'to': 1, 'weight': 0},
             {'from': 'b', 'to': 0, 'weight': 2}
             ]
-    yield allocating.WeightedMap(the_list)
+    yield allocating.ListWeightedMap(the_list)
 
 
 @pytest.fixture
@@ -157,7 +157,7 @@ def small_allocator_2():
             {'from': 'b', 'to': 0, 'weight': 1},
             {'from': 'b', 'to': 1, 'weight': 0}
             ]
-    wmap = allocating.WeightedMap(the_list)
+    wmap = allocating.ListWeightedMap(the_list)
     instances = {'a': 2, 'b': 1}
     capacities = {0: 2, 1: 1}
     yield allocating.Allocator(instances, wmap, capacities)
@@ -174,7 +174,7 @@ def small_allocator_3():
     the_list = [
             {'from': 'a', 'to': 0, 'weight': 0},
             ]
-    wmap = allocating.WeightedMap(the_list)
+    wmap = allocating.ListWeightedMap(the_list)
     instances = {'a': 1}
     capacities = {0: 1, 1: 1}
     yield allocating.Allocator(instances, wmap, capacities)
