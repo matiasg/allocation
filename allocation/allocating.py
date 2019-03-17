@@ -109,7 +109,7 @@ class Allocator:
         sources_total_qty = sum(sources.values())
         targets_total_qty = sum(targets.values())
 
-        max_val = max(m['weight'] for m in wmap)
+        max_val = sum(abs(m['weight']) for m in wmap)
         for t in targets.keys():
             wmap.append({'from': None, 'to': t, 'weight': max_val + 1})
         for s in sources.keys():
