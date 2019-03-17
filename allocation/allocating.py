@@ -1,7 +1,9 @@
-from typing import NewType, Sequence, Mapping, Optional, Dict, List, Tuple
+from typing import NewType, Sequence, Mapping, Optional, Dict, List, Tuple, Set, Union
+from numbers import Real
 from mypy_extensions import TypedDict
 import logging
 from fractions import Fraction
+from abc import ABC, abstractmethod
 
 SourceObject = NewType('SourceObject', str)
 TargetObject = NewType('TargetObject', str)
@@ -18,8 +20,36 @@ WeightedNode = TypedDict('WeightedNode', {'from': Optional[SourceObject],
 
 logger = logging.getLogger(__name__)
 
+class WeightedMap(ABC):
+    '''
+    '''
 
-class WeightedMap(list):
+    @abstractmethod
+    def __getitem__(self, key):
+        '''Returns the weight corresponding to (source, target)
+        if key is a tuple (source, target).
+        Else, if key is a str, returns the list of the WeightedNodes
+        such that its source is key
+        '''
+
+    @abstractmethod
+    def get_sources(self) -> Set[SourceObject]:
+        '''Returns the set of sources'''
+
+    @abstractmethod
+    def total_weight(self) -> Real:
+        '''Returns the sum of all the weights'''
+
+    @abstractmethod
+    def apply(self, fun) -> None:
+        '''applies function `fun` to all weights'''
+
+    @abstractmethod
+    def add_weight(self, w: WeightedNode) -> None:
+        '''adds the node to the map'''
+
+
+class ListWeightedMap(list, WeightedMap):
 
     def __init__(self, nodes: Sequence[WeightedNode]):
         super().__init__(nodes)
@@ -38,11 +68,64 @@ class WeightedMap(list):
 
         raise KeyError(f"Can't get item, argument must be str, None or tuple. Got {key}")
 
+    def add_weight(self, w):
+        self.append(w)
+
+    def total_weight(self):
+        return sum(w['weight'] for w in self)
+
+    def get_sources(self):
+        return {a['from'] for a in self}
+
+    def apply(self, fun):
+        for ftw in self:
+            ftw['weight'] = fun(ftw['weight'])
+
+
+class DictWeightedMap(WeightedMap):
+
+    def __init__(self, nodes: Sequence[WeightedNode]):
+        self.sources = set(w['from'] for w in nodes)
+        self.targets = set(w['to'] for w in nodes)
+        self.weights = {(w['from'], w['to']): w['weight']
+                        for w in nodes
+                        }
+
+    def __getitem__(self, key):
+
+        if isinstance(key, str) or key is None:
+            return [
+                {'from': ft[0], 'to': ft[1], 'weight': w}
+                for (ft, w) in self.weights.items()
+                if ft[0] == key
+            ]
+
+        elif isinstance(key, tuple):
+            return self.weights.get(key, None)
+
+        raise KeyError(f"Can't get item, argument must be str, None or tuple. Got {key}")
+
+    def add_weight(self, w):
+        self.sources.add(w['from'])
+        self.targets.add(w['to'])
+        self.weights[(w['from'], w['to'])] = w['weight']
+
+    def total_weight(self):
+        return sum(self.weights.values())
+
+    def get_sources(self):
+        return self.sources
+
+    def apply(self, fun):
+        for ft, w in self.weights.items():
+            self.weights[ft] = fun(w)
+
+
 
 class Source:
 
     def __init__(self, wmap: WeightedMap, instances: Mapping[Optional[SourceObject], int]):
-        self.collection = {a['from'] for a in wmap}
+        self.collection = wmap.get_sources()
         self.wmap = wmap
         self.instances = instances
 
@@ -104,17 +187,16 @@ class Allocator:
         '''
 
         if limit_denominator:
-            for weight in wmap:
-                weight['weight'] = Fraction(weight['weight']).limit_denominator(limit_denominator)
+            wmap.apply(lambda w: Fraction(w).limit_denominator(limit_denominator))
         sources_total_qty = sum(sources.values())
         targets_total_qty = sum(targets.values())
 
-        max_val = sum(abs(m['weight']) for m in wmap)
+        max_val = wmap.total_weight()
         for t in targets.keys():
-            wmap.append({'from': None, 'to': t, 'weight': max_val + 1})
+            wmap.add_weight({'from': None, 'to': t, 'weight': max_val + 1})
         for s in sources.keys():
-            wmap.append({'from': s, 'to': None, 'weight': max_val + 1})
-        wmap.append({'from': None, 'to': None, 'weight': -1})
+            wmap.add_weight({'from': s, 'to': None, 'weight': max_val + 1})
+        wmap.add_weight({'from': None, 'to': None, 'weight': -1})
 
         sources[None] = targets_total_qty
         targets[None] = sources_total_qty
