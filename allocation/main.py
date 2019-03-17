@@ -2,7 +2,7 @@ from argparse import ArgumentParser
 import logging
 import yaml
 
-from .allocating import WeightedMap, WeightedNode, Allocator, Allocation
+from .allocating import ListWeightedMap, WeightedNode, Allocator, Allocation
 
 logger = logging.getLogger(__name__)
 
@@ -30,7 +30,7 @@ def load_yaml(infile) -> Allocator:
 
     wmap_list = [WeightedNode({'from': w[0], 'to': w[1], 'weight': w[2]})
                  for w in y['weights']]
-    wmap = WeightedMap(wmap_list)
+    wmap = ListWeightedMap(wmap_list)
 
     return Allocator(y['sources'], wmap, y['targets'])
 
