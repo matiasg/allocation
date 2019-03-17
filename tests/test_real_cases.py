@@ -1,11 +1,11 @@
 import pytest
 from multiprocessing import Process, Queue
 
-from allocation.allocating import WeightedMap, Allocator
+from allocation.allocating import ListWeightedMap, Allocator
 
 
 def test_real_case_with_five_objects():
-    weights = WeightedMap([
+    weights = ListWeightedMap([
         {'from': '6', 'to': '5', 'weight': 2.0},
         {'from': '6', 'to': '11', 'weight': 6.0},
         {'from': '6', 'to': '25', 'weight': 0.0},
@@ -60,7 +60,7 @@ def test_real_case_floating_point():
     # In [52]: (a - c) + (c - b) + (b - a) > 0
     # Out[52]: True
 
-    weights = WeightedMap([
+    weights = ListWeightedMap([
         {'from': 'a', 'to': '1', 'weight': 1/14},
         {'from': 'a', 'to': '2', 'weight': 2/7},
         {'from': 'a', 'to': '3', 'weight': 0.5},
