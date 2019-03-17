@@ -149,7 +149,7 @@ class Allocator:
             for stw in sweights:
 
                 target, weight = stw['to'], stw['weight']
-                # ir source already allocated to target, don't consider moving it there again.
+                # if source already allocated to target, don't consider moving it there again.
                 if target in this_source_allocations:
                     continue
 
