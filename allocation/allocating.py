@@ -21,6 +21,7 @@ WeightedNode = TypedDict('WeightedNode', {'from': Optional[SourceObject],
 
 logger = logging.getLogger(__name__)
 
+
 class WeightedMap(ABC):
     '''
     '''
@@ -122,7 +123,6 @@ class DictWeightedMap(WeightedMap):
             self.weights[ft] = fun(w)
 
 
-
 class Source:
 
     def __init__(self, wmap: WeightedMap, instances: Mapping[Optional[SourceObject], int]):
@@ -215,8 +215,9 @@ class Allocator:
     def _floyd_warshall(self, differences):
         # Sort the targets by the number of times they appear in wmap
         # This is an optimization that seems to get a 2x performance.
-        wanted = Counter(ftw['to'] for s in self.sources.collection
-                                     for ftw in self.sources.wmap[s])
+        wanted = Counter(ftw['to']
+                         for s in self.sources.collection
+                         for ftw in self.sources.wmap[s])
         targets_coll = sorted(self.targets.collection,
                               key=lambda t: wanted[t], reverse=True)
         # now, do Floyd - Warshall. Stop as soon as a cycle has difference < 0.
@@ -269,7 +270,6 @@ class Allocator:
                     differences[(target_0, target)] = {'path': [{'object': stw['from'], 'to': target}], 'diff': diff}
 
         return self._floyd_warshall(differences)
-
 
     def has_cycle(self, differences: Differences) -> bool:
         return self.get_cycle(differences) is not None
