@@ -4,6 +4,7 @@ from mypy_extensions import TypedDict
 import logging
 from fractions import Fraction
 from abc import ABC, abstractmethod
+from collections import Counter
 
 SourceObject = NewType('SourceObject', str)
 TargetObject = NewType('TargetObject', str)
@@ -211,6 +212,34 @@ class Allocator:
         second = [(None, t) for t, k in self.targets.capacities.items() for i in range(k) if t is not None]
         return Allocation(first + second)
 
+    def _floyd_warshall(self, differences):
+        # Sort the targets by the number of times they appear in wmap
+        # This is an optimization that seems to get a 2x performance.
+        wanted = Counter(ftw['to'] for s in self.sources.collection
+                                     for ftw in self.sources.wmap[s])
+        targets_coll = sorted(self.targets.collection,
+                              key=lambda t: wanted[t], reverse=True)
+        # now, do Floyd - Warshall. Stop as soon as a cycle has difference < 0.
+        for middle in targets_coll:
+            logger.debug('middle: %s', middle)
+
+            for first in targets_coll:
+                for last in targets_coll:
+
+                    diff_through = differences[(first, middle)]['diff'] + differences[(middle, last)]['diff']
+
+                    if diff_through < differences[(first, last)]['diff']:
+                        first_path = differences[(first, middle)]['path']
+                        last_path = differences[(middle, last)]['path']
+                        differences[(first, last)] = {'path': first_path + last_path, 'diff': diff_through}
+                        logger.debug('  found better path from %s to %s: %s',
+                                     first, last, differences[(first, last)])
+
+                    if last == first and differences[(first, last)]['diff'] < 0:
+                        return differences[(first, last)]
+
+        return None
+
     def get_first_cycle(self, allocation: Allocation) -> Optional[DiffPath]:
         inf = float('inf')
 
@@ -239,25 +268,8 @@ class Allocator:
                 if diff < differences[(target_0, target)]['diff']:
                     differences[(target_0, target)] = {'path': [{'object': stw['from'], 'to': target}], 'diff': diff}
 
-        # now, do Floyd - Warshall. Stop as soon as a cycle has difference < 0.
-        for middle in targets_coll:
-            logger.debug('middle: %s', middle)
+        return self._floyd_warshall(differences)
 
-            for first in targets_coll:
-                for last in targets_coll:
-
-                    diff_through = differences[(first, middle)]['diff'] + differences[(middle, last)]['diff']
-
-                    if diff_through < differences[(first, last)]['diff']:
-                        first_path = differences[(first, middle)]['path']
-                        last_path = differences[(middle, last)]['path']
-                        differences[(first, last)] = {'path': first_path + last_path, 'diff': diff_through}
-                        logger.debug('  found better path from %s to %s: %s', first, last, differences[(first, last)])
-
-                    if last == first and differences[(first, last)]['diff'] < 0:
-                        return differences[(first, last)]
-
-        return None
 
     def has_cycle(self, differences: Differences) -> bool:
         return self.get_cycle(differences) is not None
