@@ -19,8 +19,10 @@ WeightedMap: n --> n   (weight 1)
 '''
 
 
-@pytest.fixture
-def large_one_to_one():
+weighted_map_classes = [allocating.ListWeightedMap, allocating.DictWeightedMap]
+
+@pytest.fixture(params=weighted_map_classes)
+def large_one_to_one(request):
     elements = range(20)
     sources = {str(e): 1 for e in elements}
     targets = {str(e): 1 for e in elements}
@@ -29,13 +31,13 @@ def large_one_to_one():
         wmap_list.append({'from': str(e), 'to': str(e), 'weight': 0})
         wmap_list.append({'from': str(e), 'to': str((e + 1) % len(elements)), 'weight': 1})
         wmap_list.append({'from': str(e), 'to': str((e - 1) % len(elements)), 'weight': 1})
-    wmap = allocating.ListWeightedMap(wmap_list)
+    wmap = request.param(wmap_list)
 
     yield allocating.Allocator(sources, wmap, targets)
 
 
-@pytest.fixture
-def large_one_to_one_alternate():
+@pytest.fixture(params=weighted_map_classes)
+def large_one_to_one_alternate(request):
     elements = range(20)
     sources = {str(e): 1 for e in elements}
     targets = {str(e): 1 for e in elements}
@@ -44,7 +46,7 @@ def large_one_to_one_alternate():
         wmap_list.append({'from': str(e), 'to': str(e), 'weight': 1})
         wmap_list.append({'from': str(e), 'to': str((e + 1) % len(elements)), 'weight': 3 * (e % 2)})
         wmap_list.append({'from': str(e), 'to': str((e - 1) % len(elements)), 'weight': 2.5})
-    wmap = allocating.ListWeightedMap(wmap_list)
+    wmap = request.param(wmap_list)
 
     yield allocating.Allocator(sources, wmap, targets)
 
