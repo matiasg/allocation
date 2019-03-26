@@ -7,6 +7,10 @@ from multiprocessing import Process, Queue
 
 from allocation import allocating
 
+'''
+These tests depend on CPU. They have very generous time limits, though.
+'''
+
 
 def large_random(sources_number, targets_number, choices, limit_denominator, wmclass):
     sources = {str(s): 1 for s in range(sources_number)}
@@ -30,7 +34,7 @@ if os.environ.get("TEST_TYPE", None) == "performance":
                 (60, 70, 5, 0, 15),
                 (50, 100, 5, 0, 45)]
 else:
-    testdata = [(10, 10, 3, 100, 4)]
+    testdata = [(10, 10, 3, 100, 1)]
 
 
 @pytest.mark.parametrize('sources_number,targets_number,choices,limit_denominator,expected_time', testdata)
