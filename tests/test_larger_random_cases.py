@@ -23,15 +23,16 @@ def large_random(sources_number, targets_number, choices, limit_denominator, wmc
     return allocating.Allocator(sources, wmap, targets, limit_denominator)
 
 
-testdata = [
-    (40, 50, 5, 0, 15),
-    (40, 50, 5, 100, 25),
-    (60, 70, 5, 0, 15),
-    (50, 100, 5, 0, 45),
-]
+
+if os.environ.get("TEST_TYPE", None) == "performance":
+    testdata = [(40, 50, 5, 0, 15),
+                (40, 50, 5, 100, 25),
+                (60, 70, 5, 0, 15),
+                (50, 100, 5, 0, 45)]
+else:
+    testdata = [(10, 10, 3, 100, 4)]
 
 
-@pytest.mark.skipif(os.environ.get("TEST_TYPE", None) != "performance", reason="Not doing performance testing")
 @pytest.mark.parametrize('sources_number,targets_number,choices,limit_denominator,expected_time', testdata)
 @pytest.mark.parametrize('wmclass', [allocating.ListWeightedMap, allocating.DictWeightedMap])
 def test_finishes_random(sources_number, targets_number, choices, limit_denominator, expected_time, wmclass):
