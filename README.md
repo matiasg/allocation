@@ -26,5 +26,11 @@ s in S, A(s) is a subset of T, in such a way that
     * #(A^{-1}(t)) = E(t) for each t in T (here A^{-1}(t) = {s in S | A(s) contains t})
     * among all such maps, find one which minimizes sum_{s in S, t in A(s)} w(s, t).
 
-This problem does not always have a solution. If it doesn't, find a multi-map A with the minimum
-number of s such that #(A(s)) < I(s) and t such that #(A^{-1}(t)) < E(t).
+This problem does not always have a solution. If it doesn't, find a multi-map A which minimizes both
+
+    * the number of s such that #(A(s)) < I(s) and
+    * the number of t such that #(A^{-1}(t)) < E(t).
+
+Again, among all such maps, find the one that minimizes
+
+    * sum_{s in S, t in A(s)} w(s, t).
